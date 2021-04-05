@@ -1,4 +1,4 @@
-package com.cuongtd.camerax
+package com.cuongtd.camerax.ui
 
 import android.util.Log
 import android.view.ViewGroup
@@ -9,20 +9,27 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import kotlin.reflect.KFunction1
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.LiveData
+import com.cuongtd.camerax.camera.CameraViewModel
 
 @Composable
 fun CameraPreview(
     buildImageCapture: KFunction1<ImageCapture, Unit>,
     modifier: Modifier = Modifier,
-    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
+    cameraViewModel: CameraViewModel,
     scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
 ) {
-    var imageCapture: ImageCapture? = null
     val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraSelector: CameraSelector by cameraViewModel.cameraSelector.observeAsState(
+        CameraSelector.DEFAULT_BACK_CAMERA
+    )
+
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -50,16 +57,24 @@ fun CameraPreview(
 
                 val imageCapture = ImageCapture.Builder()
                     .build()
+                buildImageCapture(imageCapture)
+
+                val _cameraSelector = CameraSelector.Builder().apply {
+                    requireLensFacing(
+                        when (cameraSelector) {
+                            CameraSelector.DEFAULT_BACK_CAMERA -> CameraSelector.LENS_FACING_BACK
+                            CameraSelector.DEFAULT_FRONT_CAMERA -> CameraSelector.LENS_FACING_FRONT
+                            else -> throw IllegalStateException("Back and front camera are unavailable")
+                        }
+                    )
+                }.build()
 
                 try {
                     // Must unbind the use-cases before rebinding them.
                     cameraProvider.unbindAll()
-
                     cameraProvider.bindToLifecycle(
-                        lifecycleOwner, cameraSelector, preview, imageCapture
+                        lifecycleOwner, _cameraSelector, preview, imageCapture
                     )
-
-                    buildImageCapture(imageCapture)
                 } catch (exc: Exception) {
                     Log.e("TAG", "Use case binding failed", exc)
                 }

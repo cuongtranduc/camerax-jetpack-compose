@@ -1,6 +1,7 @@
 package com.cuongtd.camerax
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -8,10 +9,16 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import androidx.compose.material.*
+import androidx.compose.material.FabPosition
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.core.content.ContextCompat
+import com.cuongtd.camerax.camera.CameraViewModel
+import com.cuongtd.camerax.ui.CameraPreview
 import com.cuongtd.camerax.ui.CaptureButton
 import com.cuongtd.camerax.ui.theme.CameraXTheme
 import java.io.File
@@ -19,13 +26,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import android.content.Intent
-
-
-
 
 class MainActivity : ComponentActivity() {
     var imageCapture: ImageCapture? = null
+    val cameraViewModel: CameraViewModel = CameraViewModel()
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
@@ -39,10 +43,13 @@ class MainActivity : ComponentActivity() {
             CameraXTheme {
                 Surface(color = MaterialTheme.colors.background) {
                     Scaffold(
-                        floatingActionButton = { CaptureButton(::takePhoto) },
+                        floatingActionButton = { CaptureButton(::takePhoto, ::flipCamera) },
                         floatingActionButtonPosition = FabPosition.Center,
                     ) {
-                        CameraPreview(buildImageCapture = ::buildImageCapture)
+                        CameraPreview(
+                            buildImageCapture = ::buildImageCapture,
+                            cameraViewModel = cameraViewModel
+                        )
                     }
                 }
             }
@@ -54,6 +61,17 @@ class MainActivity : ComponentActivity() {
 
     fun buildImageCapture(_imageCapture: ImageCapture) {
         imageCapture = _imageCapture
+    }
+
+    fun flipCamera() {
+        if (cameraViewModel.cameraSelector.value == CameraSelector.DEFAULT_BACK_CAMERA) {
+            Log.d("test1", "1")
+            cameraViewModel.onChangeCameraSelector(CameraSelector.DEFAULT_FRONT_CAMERA)
+        } else {
+            Log.d("test1", "2")
+            cameraViewModel.onChangeCameraSelector(CameraSelector.DEFAULT_BACK_CAMERA)
+
+        }
     }
 
     fun takePhoto() {
