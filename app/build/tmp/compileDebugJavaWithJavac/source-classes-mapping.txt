@@ -1,2 +1,0 @@
-com/cuongtd/camerax/BuildConfig.java
- com.cuongtd.camerax.BuildConfig

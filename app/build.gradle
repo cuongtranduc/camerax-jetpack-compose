@@ -68,5 +68,6 @@ dependencies {
 //    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.compose.runtime:runtime:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    implementation "com.google.accompanist:accompanist-glide:0.7.0"
 
 }

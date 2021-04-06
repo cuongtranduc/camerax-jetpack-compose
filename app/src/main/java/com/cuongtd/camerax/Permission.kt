@@ -27,7 +27,7 @@ class Permission {
                 )
             ) {
                 // Request camera-related permissions
-                requestPermissions(
+                    requestPermissions(
                     activity,
                     REQUIRED_PERMISSIONS,
                     REQUEST_CODE_PERMISSIONS

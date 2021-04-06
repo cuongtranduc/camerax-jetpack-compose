@@ -27,10 +27,11 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+
 class MainActivity : ComponentActivity() {
     var imageCapture: ImageCapture? = null
-    val cameraViewModel: CameraViewModel = CameraViewModel()
 
+    private lateinit var cameraViewModel: CameraViewModel
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
@@ -38,12 +39,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         Permission.checkPermission(this.applicationContext, this);
+        cameraViewModel = CameraViewModel(this)
+        val x = cameraViewModel.fetchLatestImage();
 
         setContent {
             CameraXTheme {
                 Surface(color = MaterialTheme.colors.background) {
                     Scaffold(
-                        floatingActionButton = { CaptureButton(::takePhoto, ::flipCamera) },
+                        floatingActionButton = {
+                            CaptureButton(
+                                cameraViewModel = cameraViewModel,
+                                ::takePhoto,
+                                ::flipCamera,
+                            )
+                        },
                         floatingActionButtonPosition = FabPosition.Center,
                     ) {
                         CameraPreview(
@@ -65,10 +74,8 @@ class MainActivity : ComponentActivity() {
 
     fun flipCamera() {
         if (cameraViewModel.cameraSelector.value == CameraSelector.DEFAULT_BACK_CAMERA) {
-            Log.d("test1", "1")
             cameraViewModel.onChangeCameraSelector(CameraSelector.DEFAULT_FRONT_CAMERA)
         } else {
-            Log.d("test1", "2")
             cameraViewModel.onChangeCameraSelector(CameraSelector.DEFAULT_BACK_CAMERA)
 
         }
@@ -102,6 +109,7 @@ class MainActivity : ComponentActivity() {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
                     sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, savedUri))
+                    cameraViewModel.updateLastestImage()
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)

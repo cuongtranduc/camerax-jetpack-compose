@@ -20,9 +20,9 @@ import com.cuongtd.camerax.camera.CameraViewModel
 
 @Composable
 fun CameraPreview(
+    cameraViewModel: CameraViewModel,
     buildImageCapture: KFunction1<ImageCapture, Unit>,
     modifier: Modifier = Modifier,
-    cameraViewModel: CameraViewModel,
     scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
